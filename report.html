@@ -3,19 +3,28 @@
 <title>PML - Prediction Assignment Writeup</title>
 </head>
 
-<body>
+<body style ="margin:30px 30px 30px 30px;">
+
+<font color="green">
+<h1>
+Practical Machine Learning - Coursera [Prediction Assignment Writeup]
+
+<h1>
+
+<h3><u>By Jivan Nepali</u></h3> </font>
+
 <h2>Background</h2>
-<pre>
-Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement – a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, your goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways.</pre>
+
+Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement – a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, your goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways.
 <br/>
 
  <h2>How you built your model?</h2>
- <pre>
+ 
 Model building requires the adequate data collection that is relavant to the problem description. First, I downloaded the data from the given links for Training and Testing.
-The necessary writeup in R for building the model - </pre>
+The necessary writeup in R for building the model - 
 
-<pre>
-<code> 
+
+<pre><code> 
 library(caret)
 #Loading required package: lattice
 #Loading required package: ggplot2
@@ -26,7 +35,8 @@ library(corrplot)
 </code></pre>
 
 And, then created an inputData directory and kept the downloaded data - 
-<code>
+
+<pre><code>
 trainingData <- read.csv("./inputData/pml-training.csv")
 testingData <- read.csv("./inputData/pml-testing.csv")
 dim(trainingData)
@@ -38,10 +48,10 @@ dim(testingData)
 
 
 </code>
-
+</pre>
 Let's remove some of the columns containing N/A missing values and those columns which are not actually relavant for the accelerometers case:
 
-<code>
+<pre><code>
 trainingData <- trainingData[, colSums(is.na(trainingData)) == 0] 
 testingData <- testingData[, colSums(is.na(testingData)) == 0]
 
@@ -53,102 +63,153 @@ trainingCleaned$classe <- classe
 testingRemove <- grepl("^X|timestamp|window", names(testingData))
 testingData <- testingData[, !testingRemove]
 testingCleaned <- testingData[, sapply(testingData, is.numeric)]
-</code>
+</code></pre>
 
 Now, we'll slice the data with the help of <caret> R-package into 70% as training set and the remaining 30% as the test set -
 
-<code>
+<pre><code>
 set.seed(200) #Reproducible results for pseudo RNs
 inTrain <- createDataPartition(trainingCleaned$classe, p=0.70, list=F)
 trainData <- trainingCleaned[inTrain, ]
 testData <- trainingCleaned[-inTrain, ]
 
-</code>
+</code></pre>
 
 <br/>
  <h2>How you used cross validation?</h2>
 
- Now, our model is ready for applying the classification & regression tree algorithm. We'll be using 10-fold (k-fold) cross validation - The k-fold cross validation method involves splitting the dataset into k-subsets. For each subset is held out while the model is trained on all other subsets. It is a robust method for estimating accuracy, and the size of k and tune the amount of bias in the estimate, with popular values set to 3, 5, 7 and 10.
+ Now, our model is ready for applying the classification & regression tree algorithm. We'll be using 10-fold (k-fold) cross validation - The k-fold cross validation method involves splitting the dataset into k-subsets. For each subset is held out while the model is trained on all other subsets. It is a robust method for estimating accuracy, and the size of k and tune the amount of bias in the estimate, with popular values set to 3, 5, 7 and 10.<br><br>
  
- To build our prediction model for the output variable 'Classe', we'll be using the Gradient Boosting Machines (GBMs) algorithm eventhough it may be succeptible for overfitting in case of noisy data unlike the Random Forest Algorithm. The choice here is - to try out both for the problem domain
+ To build our prediction model for the output variable 'Classe', we'll be using the Random Forest Algorithm as it is less succiptible to overfitting unlike the Gradient Boosting Machines (GBMs) algorithm which may be succeptible for overfitting in case of noisy data unlike the Random Forest Algorithm. The choice here is - to try out both for the problem domain. <br><br>
  
- Boosting is based on weak learners (high bias, low variance). In terms of decision trees, weak learners are shallow trees, sometimes even as small as decision stumps (trees with two leaves). Boosting reduces error mainly by reducing bias (and also to some extent variance, by aggregating the output from many models).
+ Boosting is based on weak learners (high bias, low variance). In terms of decision trees, weak learners are shallow trees, sometimes even as small as decision stumps (trees with two leaves). Boosting reduces error mainly by reducing bias (and also to some extent variance, by aggregating the output from many models). <br><br>
  
-On the other hand, Random Forest uses fully grown decision trees (low bias, high variance). It tackles the error reduction task in the opposite way: by reducing variance. The trees are made uncorrelated to maximize the decrease in variance, but the algorithm cannot reduce bias (which is slightly higher than the bias of an individual tree in the forest). Hence the need for large, unprunned trees, so that the bias is initially as low as possible.
+On the other hand, Random Forest uses fully grown decision trees (low bias, high variance). It tackles the error reduction task in the opposite way: by reducing variance. The trees are made uncorrelated to maximize the decrease in variance, but the algorithm cannot reduce bias (which is slightly higher than the bias of an individual tree in the forest). Hence the need for large, unprunned trees, so that the bias is initially as low as possible.<br><br>
 
-GBMs - run on trial after trial
-RFs - run in distributed fashion in parallel
+GBMs - run on trial after trial <br>
+RFs - run in distributed fashion in parallel<br><br>
 
-<code>
-controlBoost<- trainControl(method="cv", 10)
-modelFit <- train(classe ~ ., data=trainData, method="gbm", verbose=F, trControl=controlBoost)
+<pre><code>
+controlFit<- trainControl(method="cv", 10)
+modelFit <- train(classe ~ ., data=trainData, method="rf", verbose=F, trControl=controlFit, nTree=200)
+modelFit
+
+Random Forest 
+
+13737 samples
+   52 predictor
+    5 classes: 'A', 'B', 'C', 'D', 'E' 
+
+No pre-processing
+Resampling: Cross-Validated (10 fold) 
+Summary of sample sizes: 12362, 12364, 12364, 12363, 12364, 12362, ... 
+Resampling results across tuning parameters:
+
+  mtry  Accuracy   Kappa      Accuracy SD  Kappa SD   
+   2    0.9930119  0.9911599  0.002202168  0.002786180
+  27    0.9930844  0.9912516  0.002572320  0.003255582
+  52    0.9850036  0.9810259  0.004721843  0.005974713
+
+Accuracy was used to select the optimal model using  the largest value.
+The final value used for the model was mtry = 27. 
 
 
 predictTree <- predict(modelFit, testData)
 confusionMatrix(testData$classe, predictTree)
-</code>
+
+
+Confusion Matrix and Statistics
+
+          Reference
+Prediction    A    B    C    D    E
+         A 1669    3    2    0    0
+         B   10 1117    6    6    0
+         C    0    6 1013    7    0
+         D    0    1    6  956    1
+         E    0    0    1    8 1073
+
+Overall Statistics
+                                          
+               Accuracy : 0.9903          
+                 95% CI : (0.9875, 0.9927)
+    No Information Rate : 0.2853          
+    P-Value [Acc > NIR] : < 2.2e-16       
+                                          
+                  Kappa : 0.9877          
+ Mcnemar's Test P-Value : NA              
+
+Statistics by Class:
+
+                     Class: A Class: B Class: C Class: D Class: E
+Sensitivity            0.9940   0.9911   0.9854   0.9785   0.9991
+Specificity            0.9988   0.9954   0.9973   0.9984   0.9981
+Pos Pred Value         0.9970   0.9807   0.9873   0.9917   0.9917
+Neg Pred Value         0.9976   0.9979   0.9969   0.9957   0.9998
+Prevalence             0.2853   0.1915   0.1747   0.1660   0.1825
+Detection Rate         0.2836   0.1898   0.1721   0.1624   0.1823
+Detection Prevalence   0.2845   0.1935   0.1743   0.1638   0.1839
+Balanced Accuracy      0.9964   0.9933   0.9914   0.9884   0.9986
+
+
+</code></pre>
 <br/>
  <h2>What you think the expected out of sample error is?</h2>
-The out-of-sample error - 
+The out-of-sample error is 0.96% with accuracy 99.03%- 
 
-<code>
+<pre><code>
 accuracy <- postResample(predictTree, testData$classe)
+accuracy
+
+Accuracy     Kappa 
+0.9903144 0.9877487 
+
 out_of_sample_error <- 1 - as.numeric(confusionMatrix(testData$classe, predictTree)$overall[1])
-</code>
+
+[1] 0.009685641
+
+</code></pre>
 
 Now, let's apply this model to our cleaned testing set - 
 
+<pre><code>
 final_result <- predict(modelFit, testingCleaned[, -length(names(testingCleaned))])
+final_result
 
+[1] B A B A A E D B A A B C B A E E A B B B
+Levels: A B C D E
+
+
+</code></pre>
 
 Finally, let visualize the data with some plots - 
+<br><b>
+<br>
+Tree Plot:</b>
 
-Tree Plot:
-
-<code>
+<pre><code>
 finalModel <- rpart(classe ~ ., data=trainData, method="class")
 prp(finalModel)
 
 </code>
 
-Correlation Matrix:
-<code>
+
+<img src ="/Figure/Rplot_Tree_Visualization.png">
+
+</pre>
+<br><b>
+Correlation Matrix:</b>
+<pre><code>
 correlation_plot <- cor(trainData[, -length(names(trainData))])
 correlation_plot(correlation_plot, method="color")
 </code>
 
 
+<img src ="/Figure/RPlot_Correlation_Plot.png">
+</pre>
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+<i>If you have any confusions, please let me know at <u>nepali(dot)jivan517(at)gmail(dot)com</u><i/>
 
 </body>
