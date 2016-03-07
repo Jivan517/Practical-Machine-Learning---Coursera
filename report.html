@@ -11,12 +11,14 @@ Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible t
 
  <h2>How you built your model?</h2>
  <pre>
-Model building requires the adequate data collection that is relavent to the problem description. First, I downloaded the data from the given links for Training and Testing.
+Model building requires the adequate data collection that is relavant to the problem description. First, I downloaded the data from the given links for Training and Testing.
 The necessary writeup in R for building the model - </pre>
 
 <pre>
 <code> 
 library(caret)
+#Loading required package: lattice
+#Loading required package: ggplot2
 library(rpart)
 library(rpart.plot)
 library(corrplot)
@@ -37,14 +39,83 @@ dim(testingData)
 
 </code>
 
+Let's remove some of the columns containing N/A missing values and those columns which are not actually relavant for the accelerometers case:
+
+<code>
+trainingData <- trainingData[, colSums(is.na(trainingData)) == 0] 
+testingData <- testingData[, colSums(is.na(testingData)) == 0]
+
+classe <- trainingData$classe
+trainingRemove <- grepl("^X|timestamp|window", names(trainingData))
+trainingData <- trainingData[, !trainingRemove]
+trainingCleaned <- trainingData[, sapply(trainingData, is.numeric)]
+trainingCleaned$classe <- classe
+testingRemove <- grepl("^X|timestamp|window", names(testingData))
+testingData <- testingData[, !testingRemove]
+testingCleaned <- testingData[, sapply(testingData, is.numeric)]
+</code>
+
+Now, we'll slice the data with the help of <caret> R-package into 70% as training set and the remaining 30% as the test set -
+
+<code>
+set.seed(200) #Reproducible results for pseudo RNs
+inTrain <- createDataPartition(trainingCleaned$classe, p=0.70, list=F)
+trainData <- trainingCleaned[inTrain, ]
+testData <- trainingCleaned[-inTrain, ]
+
+</code>
+
+<br/>
  <h2>How you used cross validation?</h2>
 
+ Now, our model is ready for applying the classification & regression tree algorithm. We'll be using 10-fold (k-fold) cross validation - The k-fold cross validation method involves splitting the dataset into k-subsets. For each subset is held out while the model is trained on all other subsets. It is a robust method for estimating accuracy, and the size of k and tune the amount of bias in the estimate, with popular values set to 3, 5, 7 and 10.
+ 
+ To build our prediction model for the output variable 'Classe', we'll be using the Gradient Boosting Machines (GBMs) algorithm eventhough it may be succeptible for overfitting in case of noisy data unlike the Random Forest Algorithm. The choice here is - to try out both for the problem domain
+ 
+ Boosting is based on weak learners (high bias, low variance). In terms of decision trees, weak learners are shallow trees, sometimes even as small as decision stumps (trees with two leaves). Boosting reduces error mainly by reducing bias (and also to some extent variance, by aggregating the output from many models).
+ 
+On the other hand, Random Forest uses fully grown decision trees (low bias, high variance). It tackles the error reduction task in the opposite way: by reducing variance. The trees are made uncorrelated to maximize the decrease in variance, but the algorithm cannot reduce bias (which is slightly higher than the bias of an individual tree in the forest). Hence the need for large, unprunned trees, so that the bias is initially as low as possible.
+
+GBMs - run on trial after trial
+RFs - run in distributed fashion in parallel
+
+<code>
+controlBoost<- trainControl(method="cv", 10)
+modelFit <- train(classe ~ ., data=trainData, method="gbm", verbose=F, trControl=controlBoost)
+
+
+predictTree <- predict(modelFit, testData)
+confusionMatrix(testData$classe, predictTree)
+</code>
+<br/>
  <h2>What you think the expected out of sample error is?</h2>
+The out-of-sample error - 
+
+<code>
+accuracy <- postResample(predictTree, testData$classe)
+out_of_sample_error <- 1 - as.numeric(confusionMatrix(testData$classe, predictTree)$overall[1])
+</code>
+
+Now, let's apply this model to our cleaned testing set - 
+
+final_result <- predict(modelFit, testingCleaned[, -length(names(testingCleaned))])
 
 
- <h2>And, why you made the choices you did? </h2>
+Finally, let visualize the data with some plots - 
 
+Tree Plot:
 
+<code>
+finalModel <- rpart(classe ~ ., data=trainData, method="class")
+prp(finalModel)
+
+</code>
+
+Correlation Matrix:
+<code>
+correlation_plot <- cor(trainData[, -length(names(trainData))])
+correlation_plot(correlation_plot, method="color")
+</code>
 
 
 
