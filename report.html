@@ -5,10 +5,37 @@
 
 <body>
 <h2>Background</h2>
-Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement – a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, your goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways.
+<pre>
+Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement – a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, your goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways.</pre>
 <br/>
 
  <h2>How you built your model?</h2>
+ <pre>
+Model building requires the adequate data collection that is relavent to the problem description. First, I downloaded the data from the given links for Training and Testing.
+The necessary writeup in R for building the model - </pre>
+
+<pre>
+<code> 
+library(caret)
+library(rpart)
+library(rpart.plot)
+library(corrplot)
+
+</code></pre>
+
+And, then created an inputData directory and kept the downloaded data - 
+<code>
+trainingData <- read.csv("./inputData/pml-training.csv")
+testingData <- read.csv("./inputData/pml-testing.csv")
+dim(trainingData)
+[1] 19622   160
+
+dim(testingData)
+[1]  20 160
+
+
+
+</code>
 
  <h2>How you used cross validation?</h2>
 
